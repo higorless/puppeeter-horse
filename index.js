@@ -221,33 +221,43 @@ const puppeteer = require("puppeteer");
 
             let body = {
               id: result.ID,
-              competicao: nomeTorneio || "",
+              competicao: nomeTorneio || "Nome do torneio não informado",
               dados_prova: {
-                categoria: dadosProva[0] || "",
+                categoria: dadosProva[0] || "Categoria não informada",
                 altura_salto: dadosProva[3]
                   ? `${dadosProva[1]} - ${dadosProva[2]}`
-                  : dadosProva[1] || "",
-                tipo_percurso: dadosProva[4] || "",
-                hora: dadosProva[7] || "",
-                data: dadosProva[8] || "",
+                  : dadosProva[1] || "Altura do salto não informada",
+                tipo_percurso:
+                  dadosProva[4] || "Tipo do percurso não informado",
+                hora: dadosProva[7] || "Hora não informada",
+                data: dadosProva[8] || "Data não informada",
               },
-              classificação: rowData[0] || "",
-              competidorInfo: {
-                competidor: competidorFormatado[0] || "",
-                entidade: competidorFormatado[1] || "",
-                paisOrigem: competidorFormatado[2] || "",
+              classificação: rowData[0] || "Classificação não informada",
+              competitorInfo: {
+                competitor:
+                  competidorFormatado[0] || "Competidor não informado",
+                entity: competidorFormatado[1] || "Entidade não informada",
+                country: competidorFormatado[2] || "País não informado",
               },
               cavalo: {
-                nome: infoCavaloFormatado[0] || "",
-                data_nascimento: infoCavaloFormatado[1] || "",
-                Sexo: infoCavaloFormatado[2].replaceAll("/", "") || "",
-                Raça: infoCavaloFormatado[3].replaceAll("/", "") || "",
-                Proprietário: infoCavaloFormatado[4].replaceAll("/", "") || "",
+                name: infoCavaloFormatado[0] || "Nome do cavalo não informado",
+                birth_date:
+                  infoCavaloFormatado[1] ||
+                  "Data de nascimento do cavalo não informada",
+                sex:
+                  infoCavaloFormatado[2].replaceAll("/", "") ||
+                  "Sexo do cavalo não informado",
+                race:
+                  infoCavaloFormatado[3].replaceAll("/", "") ||
+                  "Raça do cavalo não informada",
+                owner:
+                  infoCavaloFormatado[4].replaceAll("/", "") ||
+                  "Proprietário do cavalo não informado",
               },
-              categoria: rowData[3] || "",
-              faltas: rowData[4] || "",
-              tempo: rowData[5] || "",
-              federacao: hipica_url
+              category: rowData[3] || "Categoria não informada",
+              fouls: rowData[4] || "Faltas não informadas",
+              time: rowData[5] || "Tempo não informado",
+              federation: hipica_url
                 .replace("www.", "")
                 .replace(".com.br", "")
                 .toUpperCase(),
