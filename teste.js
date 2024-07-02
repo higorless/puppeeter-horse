@@ -38,7 +38,13 @@ const teste = {
   federacao: "WWW.FEERJ.ORG",
 };
 
-const teste2 = teste.cavalo.split("\n");
+const category =
+  "MR\n" +
+  "                                                    \n" +
+  "                                                        \n" +
+  "                                                         -";
+
+const teste2 = category.split("\n");
 
 const finalResult = teste2.map((item) => item.trim()).filter((line) => line);
 
@@ -55,90 +61,3 @@ dummy = [
   "09h30",
   "19/05/2024",
 ];
-
-if (tableElement) {
-  const rows = await page.$$eval(".hold_table table tr", (rows) =>
-    rows
-      .filter((row) => row.querySelectorAll("td").length > 1)
-      .map((row) => {
-        const cells = Array.from(row.querySelectorAll("td"));
-        return cells.map((cell) => cell.textContent.trim());
-      })
-  );
-
-  new Promise((resolve) => setTimeout(resolve, 5000));
-
-  for (const row of rows) {
-    const cells = await row.$$("td");
-
-    if (cells.length === 0) {
-      console.log(`Nenhuma célula foi encontrada na linha: ${row}`);
-      continue;
-    }
-
-    const rowData = [];
-
-    new Promise((resolve) => setTimeout(resolve, 5000));
-
-    for (const cell of cells) {
-      const cellText = await cell.evaluate((element) =>
-        element.textContent.trim()
-      );
-
-      rowData.push(cellText);
-    }
-
-    const competidorFormatado = rowData[1]
-      ? rowData[1]
-          .split("\n")
-          .map((item) => item.trim())
-          .filter((line) => line)
-      : "";
-
-    const infoCavaloFormatado = rowData[2]
-      ? rowData[2]
-          .split("\n")
-          .map((item) => item.trim())
-          .filter((line) => line)
-      : "";
-
-    let body = {
-      id: result.ID,
-      competicao: nomeTorneio || "",
-      dados_prova:
-        {
-          categoria: dadosProva[0] || "",
-          altura_salto: dadosProva[3]
-            ? `${dadosProva[1]} - ${dadosProva[2]}`
-            : dadosProva[1] || "",
-          tipo_percurso: dadosProva[4] || "",
-          hora: dadosProva[7] || "",
-          data: dadosProva[8],
-        } || "",
-      classificação: rowData[0] || "",
-      competidorInfo:
-        {
-          competidor: competidorFormatado[0] || "",
-          entidade: competidorFormatado[1] || "",
-          paisOrigem: competidorFormatado[2] || "",
-        } || "",
-      cavalo:
-        {
-          nome: infoCavaloFormatado[0] || "",
-          data_nascimento: infoCavaloFormatado[1] || "",
-          Sexo: infoCavaloFormatado[2].replaceAll("/", "") || "",
-          Raça: infoCavaloFormatado[3].replaceAll("/", "") || "",
-          Proprietário: infoCavaloFormatado[4] || "",
-        } || "",
-      categoria: rowData[3] || "",
-      faltas: rowData[4] || "",
-      tempo: rowData[5] || "",
-      federacao: hipica_url
-        .replace("wwww.", "u")
-        .replace(".com.br", "")
-        .toLocaleUpperCase(),
-    };
-
-    finalResult.push(body);
-  }
-}

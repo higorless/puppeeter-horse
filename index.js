@@ -8,7 +8,7 @@ const puppeteer = require("puppeteer");
 
   const finalResult = [];
 
-  // const hipicas = ['www.shpr.com.br', 'www.fhbr.com.br', 'www.federacaoequestrepe.com.br','www.fph.com.br', 'www.feerj.org']
+  // const hipicas = ['www.shpr.com.br', 'www.fhbr.com.br', 'www.federacaoequestrepe.com.br','www.fph.com.br', 'www.feerj.org', 'chsa-inscricao.macronetwork.com.br']
   const hipicas_urls = ["www.feerj.org"];
 
   // const months = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
@@ -44,6 +44,20 @@ const puppeteer = require("puppeteer");
 
       // Se nenhuma das expressões combinar, lança um erro
       throw new Error("ID não encontrado no link.");
+    }
+
+    let controllerSelector;
+
+    async function safeWaitForSelector(page, selector, timeout = 5000) {
+      try {
+        await page.waitForSelector(selector, { timeout });
+        controllerSelector = true;
+        return true;
+      } catch (error) {
+        console.log(`Tabela com seletor ${selector} não encontrada.`);
+        controllerSelector = false;
+        return false;
+      }
     }
 
     let idsTorneiosColetadosArray = [];
@@ -138,7 +152,9 @@ const puppeteer = require("puppeteer");
 
     for (const [indice, result] of resultsInfo.entries()) {
       console.log(
-        `Processando ${indice + 1} de ${resultsInfo.length} resultados`
+        `Processando ${indice + 1} com id ${result.ID} de ${
+          resultsInfo.length
+        } resultados`
       );
 
       if (result.href.includes(".pdf")) {
@@ -185,11 +201,17 @@ const puppeteer = require("puppeteer");
           console.log(`Dados faltantes na prova ${id}`);
         }
 
-        await page.waitForSelector(".hold_table table");
+        const foundFirstSelector = await safeWaitForSelector(
+          page,
+          ".hold_table table"
+        );
+        let tableElement;
 
-        const tableElement = await page.$(".hold_table table");
+        if (foundFirstSelector) {
+          tableElement = await page.$(".hold_table table");
+        }
 
-        if (tableElement) {
+        if ((controllerSelector = true)) {
           const rows = await page.$$eval(".hold_table table tr", (rows) =>
             rows
               .filter((row) => row.querySelectorAll("td").length > 1)
@@ -219,6 +241,13 @@ const puppeteer = require("puppeteer");
                   .filter((line) => line)
               : "";
 
+            const categoriaFormatada = rowData[3]
+              ? rowData[3]
+                  .split("\n")
+                  .map((item) => item.trim())
+                  .filter((line) => line)
+              : "";
+
             let body = {
               id: result.ID,
               competicao: nomeTorneio || "Nome do torneio não informado",
@@ -232,7 +261,8 @@ const puppeteer = require("puppeteer");
                 hora: dadosProva[7] || "Hora não informada",
                 data: dadosProva[8] || "Data não informada",
               },
-              classificação: rowData[0] || "Classificação não informada",
+
+              classification: rowData[0] || "Classificação não informada",
               competitorInfo: {
                 competitor:
                   competidorFormatado[0] || "Competidor não informado",
@@ -254,7 +284,9 @@ const puppeteer = require("puppeteer");
                   infoCavaloFormatado[4].replaceAll("/", "") ||
                   "Proprietário do cavalo não informado",
               },
-              category: rowData[3] || "Categoria não informada",
+              category:
+                categoriaFormatada.map((option) => `${option}`) ||
+                "Categoria não informada",
               fouls: rowData[4] || "Faltas não informadas",
               time: rowData[5] || "Tempo não informado",
               federation: hipica_url
@@ -265,6 +297,8 @@ const puppeteer = require("puppeteer");
 
             finalResult.push(body);
           }
+        } else {
+          console.log("Nenhuma tabela encontrada");
         }
       }
     }
