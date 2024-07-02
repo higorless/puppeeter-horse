@@ -1,4 +1,5 @@
 const puppeteer = require("puppeteer");
+const axios = require("axios");
 
 (async () => {
   const cssSelectors = {
@@ -159,6 +160,7 @@ const puppeteer = require("puppeteer");
 
       if (result.href.includes(".pdf")) {
         resultsPdf.push(result);
+
         console.log("Resultado em PDF");
       } else {
         await page.goto(
@@ -287,7 +289,7 @@ const puppeteer = require("puppeteer");
               category:
                 categoriaFormatada.map((option) => `${option}`) ||
                 "Categoria não informada",
-              fouls: rowData[4] || "Faltas não informadas",
+              fouls: rowData[4][0] || "Faltas não informadas",
               time: rowData[5] || "Tempo não informado",
               federation: hipica_url
                 .replace("www.", "")
@@ -295,7 +297,23 @@ const puppeteer = require("puppeteer");
                 .toUpperCase(),
             };
 
-            finalResult.push(body);
+            const jsonBody = JSON.stringify(body);
+
+            async function sendingData(data) {
+              try {
+                const response = await axios.post(
+                  "https://wh-backend.onrender.com/",
+                  data
+                );
+                console.log("Resultados enviados com sucesso");
+              } catch (error) {
+                console.log("Erro ao enviar dados", error);
+              }
+            }
+
+            // finalResult.push(body);
+
+            sendingData(jsonBody);
           }
         } else {
           console.log("Nenhuma tabela encontrada");
@@ -303,6 +321,8 @@ const puppeteer = require("puppeteer");
       }
     }
 
-    console.log(finalResult);
+    console.log("script encerrado");
   }
+
+  await browser.close();
 })();
