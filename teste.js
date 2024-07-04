@@ -1,4 +1,4 @@
-const teste = {
+const body = {
   id: "15721",
   competicao: "IV ETAPA DO RANKING FEERJ DE SALTO INICIANTE",
   dados_prova: {
@@ -26,3 +26,16 @@ const teste = {
   time: "57,77",
   federation: "FEERJ.ORG",
 };
+
+const finalResultArray = [];
+const finalResult = { finalResultArray };
+
+while (finalResultArray.length < 100) {
+  finalResult.push();
+}
+
+for (let i = 0; i < finalResultArray.length; i++) {}
+
+const jsonBody = [JSON.stringify(body)];
+
+console.log(jsonBody);

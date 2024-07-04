@@ -7,7 +7,7 @@ const axios = require("axios");
     yearSelect: '::-p-xpath(//*[@id="ctl00_ContentPlaceHolder1_ddlAno"])',
   };
 
-  const finalResult = [];
+  let finalResult = [];
 
   // const hipicas = ['www.shpr.com.br', 'www.fhbr.com.br', 'www.federacaoequestrepe.com.br','www.fph.com.br', 'www.feerj.org', 'chsa-inscricao.macronetwork.com.br']
   const hipicas_urls = ["www.feerj.org"];
@@ -151,6 +151,18 @@ const axios = require("axios");
       }
     }
 
+    let finalResultsArray = [];
+    const batchSize = 150;
+
+    async function sendingData(data) {
+      try {
+        await axios.post("https://wh-backend.onrender.com/", data);
+        console.log("Resultados enviados com sucesso");
+      } catch (error) {
+        console.log("Erro ao enviar dados", error);
+      }
+    }
+
     for (const [indice, result] of resultsInfo.entries()) {
       console.log(
         `Processando ${indice + 1} com id ${result.ID} de ${
@@ -199,6 +211,7 @@ const axios = require("axios");
             item.replace(/\n/g, " ").trim()
           );
           dadosProva = conteudoDoSpanFormatado;
+          console.log(dadosProva);
         } else {
           console.log(`Dados faltantes na prova ${id}`);
         }
@@ -260,8 +273,8 @@ const axios = require("axios");
                   : dadosProva[1] || "Altura do salto não informada",
                 tipo_percurso:
                   dadosProva[4] || "Tipo do percurso não informado",
-                hora: dadosProva[7] || "Hora não informada",
-                data: dadosProva[8] || "Data não informada",
+                hora: dadosProva[6] || "Hora não informada",
+                data: dadosProva[7] || "Data não informada",
               },
 
               classification: rowData[0] || "Classificação não informada",
@@ -297,23 +310,19 @@ const axios = require("axios");
                 .toUpperCase(),
             };
 
-            const jsonBody = JSON.stringify(body);
+            const updatedResultsArray = [...finalResultsArray, body];
 
-            async function sendingData(data) {
-              try {
-                const response = await axios.post(
-                  "https://wh-backend.onrender.com/",
-                  data
-                );
-                console.log("Resultados enviados com sucesso");
-              } catch (error) {
-                console.log("Erro ao enviar dados", error);
-              }
+            if (updatedResultsArray.length >= batchSize) {
+              console.log("Estou enviando para o back");
+              sendDataToApi(updatedResultsArray);
+              finalResultsArray.splice(0, finalResultsArray.length);
+            } else {
+              finalResultsArray = updatedResultsArray;
             }
+          }
 
-            // finalResult.push(body);
-
-            sendingData(jsonBody);
+          if (finalResultsArray.length > 0) {
+            await sendDataToApi(finalResultsArray);
           }
         } else {
           console.log("Nenhuma tabela encontrada");
@@ -321,7 +330,18 @@ const axios = require("axios");
       }
     }
 
-    console.log("script encerrado");
+    async function sendDataToApi(data) {
+      // const finalResults = JSON.stringify(data);
+      try {
+        await axios.post(
+          "https://wh-backend.onrender.com/results/json-to-db",
+          data
+        );
+        console.log("Resultados enviados com sucesso");
+      } catch (error) {
+        console.log("Erro ao enviar dados", error);
+      }
+    }
   }
 
   await browser.close();
