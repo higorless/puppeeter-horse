@@ -27,15 +27,15 @@ const body = {
   federation: "FEERJ.ORG",
 };
 
-const finalResultArray = [];
-const finalResult = { finalResultArray };
+const finalResultArray = [{ teste: "memes", teste: "memes2" }];
+const finalResultteste = [...finalResultArray, "memes"];
 
-while (finalResultArray.length < 100) {
-  finalResult.push();
-}
+// while (finalResultArray.length < 100) {
+//   finalResult.push();
+// }
 
-for (let i = 0; i < finalResultArray.length; i++) {}
+// for (let i = 0; i < finalResultArray.length; i++) {}
 
-const jsonBody = [JSON.stringify(body)];
+// const jsonBody = [JSON.stringify(body)];
 
-console.log(jsonBody);
+console.log(finalResultteste);

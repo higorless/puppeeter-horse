@@ -10,7 +10,7 @@ const axios = require("axios");
   let finalResult = [];
 
   // const hipicas = ['www.shpr.com.br', 'www.fhbr.com.br', 'www.federacaoequestrepe.com.br','www.fph.com.br', 'www.feerj.org', 'chsa-inscricao.macronetwork.com.br']
-  const hipicas_urls = ["www.feerj.org"];
+  const hipicas_urls = ["chsa-inscricao.macronetwork.com.br"];
 
   // const months = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
   const monthsOptions = ["5"];
@@ -64,7 +64,11 @@ const axios = require("axios");
     let idsTorneiosColetadosArray = [];
     let resultsPdfArray = [];
     let resultsInfoArray = [];
+    let testingArray = [];
     let loading = false;
+
+    let finalResultsArray = [];
+    const batchSize = 150;
 
     page.on("dialog", async (dialog) => {
       console.log("Diálogo detectado:", dialog.message());
@@ -148,18 +152,6 @@ const axios = require("axios");
         }
       } catch (error) {
         console.error(`Erro ao processar o torneio ID: ${id}`, error);
-      }
-    }
-
-    let finalResultsArray = [];
-    const batchSize = 150;
-
-    async function sendingData(data) {
-      try {
-        await axios.post("https://wh-backend.onrender.com/", data);
-        console.log("Resultados enviados com sucesso");
-      } catch (error) {
-        console.log("Erro ao enviar dados", error);
       }
     }
 
@@ -310,19 +302,16 @@ const axios = require("axios");
                 .toUpperCase(),
             };
 
+            // testingArray.push(body);
             const updatedResultsArray = [...finalResultsArray, body];
 
-            if (updatedResultsArray.length >= batchSize) {
-              console.log("Estou enviando para o back");
+            if (updatedResultsArray.length === batchSize) {
               sendDataToApi(updatedResultsArray);
-              finalResultsArray.splice(0, finalResultsArray.length);
+              // finalResultsArray.splice(0, finalResultsArray.length);
+              finalResultsArray.length = 0;
             } else {
               finalResultsArray = updatedResultsArray;
             }
-          }
-
-          if (finalResultsArray.length > 0) {
-            await sendDataToApi(finalResultsArray);
           }
         } else {
           console.log("Nenhuma tabela encontrada");
@@ -330,11 +319,15 @@ const axios = require("axios");
       }
     }
 
+    if (finalResultsArray.length > 0) {
+      await sendDataToApi(finalResultsArray);
+    }
+
     async function sendDataToApi(data) {
       // const finalResults = JSON.stringify(data);
       try {
         await axios.post(
-          "https://wh-backend.onrender.com/results/json-to-db",
+          "https://wh-backend-1.onrender.com/results/json-to-db",
           data
         );
         console.log("Resultados enviados com sucesso");
@@ -342,7 +335,7 @@ const axios = require("axios");
         console.log("Erro ao enviar dados", error);
       }
     }
+    // console.log(testingArray);
   }
-
   await browser.close();
 })();
