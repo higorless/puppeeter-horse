@@ -10,10 +10,10 @@ const axios = require("axios");
   let finalResult = [];
 
   // const hipicas = ['www.shpr.com.br', 'www.fhbr.com.br', 'www.federacaoequestrepe.com.br','www.fph.com.br', 'www.feerj.org', 'chsa-inscricao.macronetwork.com.br']
-  const hipicas_urls = ["chsa-inscricao.macronetwork.com.br"];
+  const hipicas_urls = ["www.fph.com.br", "www.feerj.org"];
 
   // const months = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
-  const monthsOptions = ["5"];
+  const monthsOptions = ["5", "4", "3", "2", "1"];
 
   // const years = ["2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024"]
   const yearsOptions = ["2024"];
@@ -77,23 +77,43 @@ const axios = require("axios");
 
     await page.goto(`https://${hipica_url}/calendario`);
 
-    for (const month of monthsOptions) {
-      await page.select(cssSelectors.dateSelect, month);
-    }
-
     for (const year of yearsOptions) {
-      await page.select(cssSelectors.yearSelect, year);
+      await page.select("#ctl00_ContentPlaceHolder1_ddlAno", year);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      for (const month of monthsOptions) {
+        await page.select("#ctl00_ContentPlaceHolder1_ddlMes", month);
+        await page.select("#ctl00_ContentPlaceHolder1_ddlModalidade", "14"); //Salto
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        const elements = await page.$$eval(
+          'a[title="Resultado"]',
+          (anchors) => {
+            return anchors.map((anchor) => anchor.href);
+          }
+        );
+
+        elements.map((link) => {
+          idsTorneiosColetadosArray.push(extractIdFromLink(link));
+        });
+      }
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // for (const month of monthsOptions) {
+    //   await page.select(cssSelectors.dateSelect, month);
+    // }
 
-    const elements = await page.$$eval('a[title="Resultado"]', (anchors) => {
-      return anchors.map((anchor) => anchor.href);
-    });
+    // for (const year of yearsOptions) {
+    //   await page.select(cssSelectors.yearSelect, year);
+    // }
 
-    elements.map((link) => {
-      idsTorneiosColetadosArray.push(extractIdFromLink(link));
-    });
+    // await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // const elements = await page.$$eval('a[title="Resultado"]', (anchors) => {
+    //   return anchors.map((anchor) => anchor.href);
+    // });
+
+    // elements.map((link) => {
+    //   idsTorneiosColetadosArray.push(extractIdFromLink(link));
+    // });
 
     const setIdsTorneiosColetados = new Set(idsTorneiosColetadosArray);
     const setResultsInfoArray = new Set(resultsInfoArray);
@@ -303,11 +323,11 @@ const axios = require("axios");
             };
 
             // testingArray.push(body);
+
             const updatedResultsArray = [...finalResultsArray, body];
 
             if (updatedResultsArray.length === batchSize) {
               sendDataToApi(updatedResultsArray);
-              // finalResultsArray.splice(0, finalResultsArray.length);
               finalResultsArray.length = 0;
             } else {
               finalResultsArray = updatedResultsArray;
@@ -335,7 +355,6 @@ const axios = require("axios");
         console.log("Erro ao enviar dados", error);
       }
     }
-    // console.log(testingArray);
   }
   await browser.close();
 })();
